@@ -1,0 +1,28 @@
+#!/bin/sh
+
+if [[ $(tty) == "/dev/tty1" ]]; then
+    XSESSIONS=($(cat /usr/share/xsessions/* | grep ^Exec | cut -d '=' -f 2 | xargs which))
+
+    for i in ${!XSESSIONS[@]}; do
+        printf "%s\t%s\n" "$i" "${XSESSIONS[$i]}"
+    done
+
+    printf "q\tquit to tty\n"
+
+    read -p 'start number: ' num
+
+    startcommand="startx"
+
+    NV_NOT_FOUND=$(which nvidia-xrun 2>&1 > /dev/null)
+    if [[ -z "$NV_NOT_FOUND" ]]; then
+        read -p 'use nvidia-xrun? (y/n): ' nv
+        if [[ $nv == 'y' ]]; then
+            startcommand="nvidia-xrun"
+        fi
+    fi
+
+    if [[ ! $num == 'q' ]]; then
+        echo "${startcommand} ${XSESSIONS[$num]}"
+        $startcommand  "${XSESSIONS[$num]}"
+    fi
+fi
